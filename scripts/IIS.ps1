@@ -2,7 +2,7 @@
 # Change hostname
 # -------------------------------------------------------------------------
 function changeHostname {
-    $hostname = "EP1-IIS"
+    $hostname = "EP1-WEB"
     Rename-Computer -ComputerName $env:COMPUTERNAME -newName $hostname -Force
     Restart-Computer
 }
