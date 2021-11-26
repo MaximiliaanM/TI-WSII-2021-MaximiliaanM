@@ -18,7 +18,7 @@ function changeNetworkSettings {
 # Install Forest (Perform on Server Core)
 # -------------------------------------------------------------------------
 function changeDomain {
-    $domainname = "EP1-Maximiliaan.HoGent"
+    $domainname = "EP1-Maximiliaan.hogent"
     $netbios = "EP1-Maximiliaan"
     $password = "P@ssw0rd" | ConvertTo-SecureString -AsPlainText -Force
     Install-WindowsFeature AD-Domain-Services -IncludeManagementTools 
