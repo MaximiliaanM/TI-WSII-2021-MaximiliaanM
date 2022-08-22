@@ -2,9 +2,8 @@
 # Change hostname
 # -------------------------------------------------------------------------
 function changeHostname {
-    $hostname = "EP1-CA"
+    $hostname = "EP3-CA"
     Rename-Computer -ComputerName $env:COMPUTERNAME -newName $hostname -Force
-    Restart-Computer
 }
 # -------------------------------------------------------------------------
 # Change networksettings
@@ -20,23 +19,29 @@ function changeNetworkSettings {
 # Join existing Domain
 # -------------------------------------------------------------------------
 function joinDomain {
-    $domainname = "EP1-Maximiliaan.HoGent"
+    $domainname = "EP3-Maximiliaan.hogent"
     $username = "$domainname\Administrator"
-    $password = "P@ssw0rd" | ConvertTo-SecureString -AsPlainText -Force
+    $password = "Administr@tor2022" | ConvertTo-SecureString -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential($username, $password)
     Add-Computer -DomainName $domainname -Credential $credential
-    Restart-computer
 }
 # -------------------------------------------------------------------------
 # Install the necessary prerequisites
 # -------------------------------------------------------------------------
 function changePrerequisites { 
     Install-WindowsFeature ADCS-Cert-Authority -IncludeManagementTools
+    Add-WindowsFeature Adcs-Web-Enrollment
 }
 # -------------------------------------------------------------------------
 # Installing CA
 # -------------------------------------------------------------------------
 function installCA {
-    Add-WindowsFeature adcs-cert-authority
-    Install-AdcsCertificationAuthority -CAType EnterpriseRootCa -CryptoProviderName "ECDSA_P256#Microsoft Software Key Storage Provider" -KeyLength 256 -HashAlgorithmName SHA256
+    Install-AdcsCertificationAuthority -CAType StandaloneRootCa
+    Install-AdcsWebEnrollment -CAConfig "EP3-CA\EP3-CA.EP3-Maximiliaan.hogent"
+    Restart-computer
 }
+changeHostname
+changeNetworkSettings
+joinDomain
+changePrerequisites
+installCA
