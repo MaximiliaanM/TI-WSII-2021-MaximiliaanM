@@ -40,6 +40,8 @@ function changeDHCP {
     Install-WindowsFeature -Name 'DHCP' -IncludeManagementTools 
     Add-DhcpServerV4Scope -Name "DHCP Scope" -StartRange $startScope -EndRange $endScope -SubnetMask 255.255.255.0 
     Set-DhcpServerV4OptionValue -DnsServer $ip -Router $ip 
+    Set-DhcpServerv4OptionValue -ComputerName MyDHCPServer -ScopeId $ip -OptionId 066 -Value "192.168.10.225"
+    Set-DhcpServerv4OptionValue -ComputerName MyDHCPServer -ScopeId $ip -OptionId 067 -Value "boot\x86\wdsnbp.com"
     Set-DhcpServerV4Scope -ScopeId $ip -LeaseDuration 1.00:00:00 
     Restart-Service DHCPServer -Force  
 }

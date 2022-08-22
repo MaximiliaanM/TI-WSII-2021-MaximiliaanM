@@ -23,6 +23,13 @@
     - [Opzetten Deployment server](#opzetten-deployment-server)
       - [Eerste configuratie script](#eerste-configuratie-script)
       - [Tweede configuratie script](#tweede-configuratie-script)
+  - [Deploy Windows 10 workstation met SCCM](#deploy-windows-10-workstation-met-sccm)
+    - [Windows 10 ISO  mounten](#windows-10-iso--mounten)
+    - [Import Windows 10 Operating System Image](#import-windows-10-operating-system-image)
+    - [Create Application](#create-application)
+    - [Distribute Operating System Image](#distribute-operating-system-image)
+    - [Create Task Sequence to deploy an OS](#create-task-sequence-to-deploy-an-os)
+    - [Deploy Windows 10 Pro Task Sequence](#deploy-windows-10-pro-task-sequence)
   - [Tabel met nuttige informatie](#tabel-met-nuttige-informatie)
   - [Scripts](#scripts)
     - [Script Domeincontroller - EP3-DC-ALFA](#script-domeincontroller---ep3-dc-alfa)
@@ -211,6 +218,7 @@ Het script bevat 6 functies met elk een reeks aan Powershell commando's, die ach
   - Installeert DHCP
   - Definieert de DHCP scope met range van `192.168.10.100` tot `192.168.10.150`
   - Zet de DNS server en default gateway op zichzelf, namelijk `192.168.10.200`
+  - Voegt DHCP option 66 & 67 toe voor PXE boot
   - Zet leasing van IPv4 adressen op 24uur
   - Restart de DHCP server
 - changeRRAS
@@ -444,33 +452,174 @@ We zien dat SCCM/MECM (Microsoft Endpoint Configuration Manager) is geïnstallee
 
 ![](img/MECM.JPG)
 
+## Deploy Windows 10 workstation met SCCM
 
+### Windows 10 ISO  mounten
 
+Eerst moeten we de Windows 10 ISO mounten op de VM. We doen dit door naar de "Settings" van de VM te gaan en op "CD/DVD (SATA)" te klikken. In de rechterkant zoeken we naar de locatie van de Windows 10 ISO.
 
+![](img/windos10-iso.JPG)
 
+Open de inhoud van deze ISO en kopieer deze naar een nieuwe map genaamd `Images` op de C: schijf.
 
+![](img/images.JPG)
 
+### Import Windows 10 Operating System Image
 
+Open SCCM/MECM (Microsoft Endpoint Configuration Manager). Ga naar "Software Library" > "Operating Systems" > "Operating System Images". Rechtermuisklik en kies "Add Operating System Image"
 
+![](img/import-w10-OS.JPG)
 
+In het volgende venster geven we het pad op waar de `install.wim` file staat van de Windows 10 ISO. Deze staat in de nieuwe map Images met als pad `C:\Images\sources\install.wim`.
 
+Let op de we een geldig UNC path moeten opgeven om verder te kunnen gaan. Dit wil zeggen dat men een share moeten opgeven. We kunnen dit doen a.d.h.v. localhost: `\\localhost\c$\Images\sources\install.wim`
 
+Vink beide vakjes aan en kies "6 - Windows 10 Pro" in het selctievakje. Klik op next
 
+![](img/import-w10-OS2.JPG)
 
+Kies een taal en architectuur.
 
+![](img/import-w10-OS3.JPG)
 
+Geef extra optionele info mee en klik op next. De task zal nu beginnen met het OS toe te voegen.
 
+![](img/import-w10-OS4.JPG)
 
+### Create Application
 
+Om bepaalde software mee te installeren met Windows 10 moeten we deze installers toevoegen.
+Ga naar "Softwar Library" > "Application Management" > "Applications", rechtermuisklik en kies voor "Create Application"
 
+![](img/create-app.JPG)
 
+Kies in het venster voor "Automatically detect information about this application from installation files". Kies als type "Windows Installer (*.msi file)" en lokaliseer de installer.
+Deze staat (Opgelet ook een share opgeven) in `\\localhost\c$\packages\putty-64bit-0.77-installer.msi`. Klik op next
 
+![](img/create-app2.JPG)
 
+Overloop informatie en klik op next.
 
+![](img/create-app3.JPG)
 
+Voeg optioneel nog extra info op en klik op next.
 
+![](img/create-app4.JPG)
 
+Overloop de finale instellingen en klik op next.
 
+![](img/create-app5.JPG)
+
+Als we de wizard sluiten dan zien we nu PuTTY als applicatie item staan.
+
+![](img/create-app6.JPG)
+
+### Distribute Operating System Image
+
+Nu we de Windows 10 Pro image zien staan, rechermuisklik op de OS image en kies voor "Distribute Content". In het venster klik op next.
+
+![](img/distribute-OS.JPG)
+
+In het venster "Specify the content destination", klik op Add en kies voor "Distribution Point"
+
+![](img/distribute-OS3.JPG)
+
+Voeg het enige distributie punt toe, `EP3-SCCM.EP3-MAXIMILIAAN.HOGENT`. Klik op ok
+
+![](img/distribute-OS2.JPG)
+
+Klik op next en overloop de settings. Klik op next om de task te starten.
+
+![](img/distribute-OS4.JPG)
+
+Klik op Close om de wizard te sluiten. Als de distributie succesvol was dan zien we dat bij de "Content Status". We zien dat de cirkel groen kleurt en bij "Succes" staat nu 1.
+
+![](img/distribute-OS5.JPG)
+
+### Create Task Sequence to deploy an OS
+
+Ga naar "Software Library" > "Operating Systems" > "Task Sequeces". Rechtermuisklik en kies "Create Task Sequence"
+
+![](img/task-sequence0.JPG)
+
+In het volgende venster kies voor "Install an existing image package" en klik op next
+
+![](img/task-sequence.JPG)
+
+Geef task naam, beschrijfing (optioneel) en kies de beschikbare boot image. Vink "Run as high performance power plan" aan en klik op next
+
+![](img/task-sequence2.JPG)
+
+Vul volgende gegevens in en klik op next:
+
+- Image package: klik op browse en selecteer de image
+- Deselecteer "Configure task sequence with BitLocker"
+- Selecteer "Enable the account and specify the local administrator password"
+  - Password =  `Administr@tor2022`
+
+![](img/task-sequence3.JPG)
+
+Klik op "Join a domain" en geef het domein `EP3-Maximiliaan.hogent` op. Vul als account de Administrator in en klik op next. In het volgende venster klik gewoon op next.
+
+![](img/task-sequence4.JPG)
+
+Deselecteer alle vakjes om geen gegevens te capteren en klik op next.
+
+![](img/task-sequence5.JPG)
+
+Kies voor "Do not install any software updates" en klik op next.
+
+![](img/task-sequence6.JPG)
+
+Voeg de nodige applicaties toe voor deze workstation. In dit voorbeeld is het PuTTY.
+
+![](img/task-sequence7.JPG)
+
+Overloop de instellingen en klik op next.
+
+![](img/task-sequence8.JPG)
+
+Als de task succesvol is voltooid kan je op close klikken om de wizard te sluiten.
+
+![](img/task-sequence9.JPG)
+
+### Deploy Windows 10 Pro Task Sequence
+
+Rechtermuisklik op de task sequence en kies voor "Deploy"
+
+![](img/deploy-task.JPG)
+
+Kies bij "Collection" voor "All Unknown Computers" en klik op next.
+
+![](img/deploy-task2.JPG)
+
+Kies bij "Purpose" voor "Required" en bij "Make available to the following" kiezen we voor "Only media and PXE (hidden)". Klik op next.
+
+![](img/deploy-task3.JPG)
+
+Klik op next.
+
+![](img/deploy-task4.JPG)
+
+Klik op next.
+
+![](img/deploy-task5.JPG)
+
+Klik op next.
+
+![](img/deploy-task6.JPG)
+
+Klik op next.
+
+![](img/deploy-task7.JPG)
+
+Klik op next.
+
+![](img/deploy-task8.JPG)
+
+Klik op Close om de wizard te sluiten.
+ 
+![](img/deploy-task9.JPG)
 
 ---
 
@@ -543,6 +692,10 @@ function changeDHCP {
     Add-DhcpServerV4Scope -Name "DHCP Scope" -StartRange $startScope -EndRange $endScope `
     -SubnetMask 255.255.255.0 
     Set-DhcpServerV4OptionValue -DnsServer $ip -Router $ip 
+    Set-DhcpServerv4OptionValue -ComputerName MyDHCPServer -ScopeId $ip -OptionId 066 `
+    -Value "192.168.10.225"
+    Set-DhcpServerv4OptionValue -ComputerName MyDHCPServer -ScopeId $ip -OptionId 067 `
+    -Value "boot\x86\wdsnbp.com"
     Set-DhcpServerV4Scope -ScopeId $ip -LeaseDuration 1.00:00:00 
     Restart-Service DHCPServer -Force  
 }
