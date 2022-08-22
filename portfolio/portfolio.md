@@ -25,17 +25,61 @@
       - [Tweede configuratie script](#tweede-configuratie-script)
   - [Tabel met nuttige informatie](#tabel-met-nuttige-informatie)
   - [Scripts](#scripts)
-    - [Domeincontroller - EP3-DC-ALFA](#domeincontroller---ep3-dc-alfa-1)
-    - [Certificatie server - EP3-CA](#certificatie-server---ep3-ca-1)
-    - [WEB server - EP3-WEB](#web-server---ep3-web-1)
-    - [Deployment server - EP3-SCCM](#deployment-server---ep3-sccm-1)
+    - [Script Domeincontroller - EP3-DC-ALFA](#script-domeincontroller---ep3-dc-alfa)
+    - [Script Certificatie server - EP3-CA](#script-certificatie-server---ep3-ca)
+    - [Script WEB server - EP3-WEB](#script-web-server---ep3-web)
+    - [Scripts Deployment server - EP3-SCCM](#scripts-deployment-server---ep3-sccm)
       - [SQL.ps1](#sqlps1)
       - [SCCM.ps1](#sccmps1)
 
 ## Software en nodige packages
 
-- [Windows Server 2019 ISO](https://www.microsoft.com/en-us/evalcenter/download-windows-server-2019)
-- [Windows 10 ISO](https://www.microsoft.com/en-us/software-download/windows10)
+Voor we beginnen zorgen we eerst dat we de nodige software en packages hebben.
+Download deze eerst en zet ze allemaal samen in een map genaamd `packages`. Later gaan we in deze handleiding verder met deze folder.
+
+- [Windows Server 2019 ISO - download page](https://www.microsoft.com/en-us/evalcenter/download-windows-server-2019)
+- [Windows 10 ISO - dowload page](https://www.microsoft.com/en-us/software-download/windows10)
+- [Windows 10 ADK - Package download link](http://go.microsoft.com/fwlink/p/?LinkId=526740&ocid=tia-235208000)
+- [Microsoft Deployment Toolkit (MDT) - Package download page](https://www.microsoft.com/en-us/download/details.aspx?id=54259)
+- [Microsoft SQL Server 2019 - EXE download page](https://www.microsoft.com/en-us/evalcenter/evaluate-sql-server-2019)
+- [SQL Server Management Studio (SSMS) - dowload page](https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver16)
+- **Config.ini** (maak deze file aan en kopieer onderstaande code naar de file)
+  - Nodig om SCCM/MECM via een Powershell script te installeren
+  - ```
+    [Identification]
+    Action=InstallPrimarySite
+
+    [Options]
+    ProductID=Eval
+    SiteCode=BEL
+    SiteName=EP3-Maximiliaan.HoGent
+    SMSInstallDir="C:\SCCM_Install"
+    SDKServer=EP3-SCCM.EP3-Maximiliaan.hogent
+    RoleCommunicationProtocol=HTTPorHTTPS
+    ClientsUsePKICertificate=0
+    MobileDeviceLanguage=0
+    ManagementPoint=EP3-SCCM.EP3-Maximiliaan.hogent
+    ManagementPointProtocol=HTTP
+    DistributionPoint=EP3-SCCM.EP3-Maximiliaan.hogent
+    DistributionPointProtocol=HTTP
+    DistributionPointInstallIIS=0
+    AdminConsole=1
+
+    [SQLConfigOptions]
+    SQLServerName=EP3-SCCM.EP3-Maximiliaan.hogent
+    DatabaseName=EP3_SCCM
+    SQLSSBPort=4022 
+
+    ```
+- [PuTTY - Application download page](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
+
+Onderaan in het tweede deel van deze handleiding vindt u alle scripts die we nodig zullen hebben. Kopieer deze scripts en voeg ze toe in een folder genaamd `scripts`. dit zijn in totaal 5 scripts.
+
+- [DC1.ps1](#script-domeincontroller---ep3-dc-alfa)
+- [CA.ps1](#script-certificatie-server---ep3-ca)
+- [WEB.ps1](#script-web-server---ep3-web)
+- [SQL.ps1](#sqlps1)
+- [SCCM.ps1](#sccmps1)
 
 ## Golden Image aanmaken met VMWare
 ### Opzetten VM
@@ -96,7 +140,7 @@ Aan de hand van een shared folder gaan we de nodige files van het host systeem n
 
 ![](img/shared-folder.JPG)
 
-We plaatsen de folder met scripts en de folder met packages op de C: schijf van de VM in gepaste folders zoals hieronder aangetoond.
+We plaatsen de folder met `scripts` en de folder met `packages` op de C: schijf van de VM in gepaste folders zoals hieronder aangetoond.
 
 ![](img/scripts-cp.JPG)
 ![](img/packages-cp.JPG)
@@ -143,15 +187,15 @@ Open Windows Verkenner en ga naar de C: schijf, open de folder scripts die we op
 
 Rechtermuisklik ergens in de map en kies "Open Powershell window here"
 
-![](img/powershell-open.JPG)
+![](img/Powershell-open.JPG)
 
-Voer het [DC1.ps1](#domeincontroller---ep3-dc-alfa) powershell script uit om de domeincontroller te configureren.
+Voer het [DC1.ps1](#script-domeincontroller---ep3-dc-alfa) Powershell script uit om de domeincontroller te configureren.
 
 ```ps1
 PS C:\scripts> .\DC1.ps1
 ```
 
-Het script bevat 6 functies met elk een reeks aan powershell commando's, die achter elkaar worden uitgevoerd.
+Het script bevat 6 functies met elk een reeks aan Powershell commando's, die achter elkaar worden uitgevoerd.
 
 - changeHostname
   - Veranderd de hostname van de computer naar `EP3-DC-ALFA`
@@ -204,15 +248,15 @@ Open Windows Verkenner en ga naar de C: schijf, open de folder scripts die we op
 
 Rechtermuisklik ergens in de map en kies "Open Powershell window here"
 
-![](img/powershell-open.JPG)
+![](img/Powershell-open.JPG)
 
-Voer het [CA.ps1](#certificatie-server---ep3-ca) powershell script uit om de Certificatie server te configureren.
+Voer het [CA.ps1](#script-certificatie-server---ep3-ca) Powershell script uit om de Certificatie server te configureren.
 
 ```ps1
 PS C:\scripts> .\CA.ps1
 ```
 
-Het script bevat 5 functies met elk een reeks aan powershell commando's, die achter elkaar worden uitgevoerd.
+Het script bevat 5 functies met elk een reeks aan Powershell commando's, die achter elkaar worden uitgevoerd.
 
 - changeHostname
   - Veranderd de hostname van de computer naar `EP3-CA`
@@ -255,15 +299,15 @@ Open Windows Verkenner en ga naar de C: schijf, open de folder scripts die we op
 
 Rechtermuisklik ergens in de map en kies "Open Powershell window here"
 
-![](img/powershell-open.JPG)
+![](img/Powershell-open.JPG)
 
-Voer het [ISS.ps1](#web-server---ep3-web) powershell script uit om de WEB server te configureren.
+Voer het [ISS.ps1](#script-web-server---ep3-web) Powershell script uit om de WEB server te configureren.
 
 ```ps1
 PS C:\scripts> .\ISS.ps1
 ```
 
-Het script bevat 4 functies met elk een reeks aan powershell commando's, die achter elkaar worden uitgevoerd.
+Het script bevat 4 functies met elk een reeks aan Powershell commando's, die achter elkaar worden uitgevoerd.
 
 - changeHostname
   - Veranderd de hostname van de computer naar `EP3-WEB`
@@ -323,17 +367,17 @@ Open Windows Verkenner en ga naar de C: schijf, open de folder scripts die we op
 
 Rechtermuisklik ergens in de map en kies "Open Powershell window here"
 
-![](img/powershell-open.JPG)
+![](img/Powershell-open.JPG)
 
 #### Eerste configuratie script
 
-Voer eerst het [SQL.ps1](#sqlps1) powershell script uit uit om de deployment server te configureren.
+Voer eerst het [SQL.ps1](#sqlps1) Powershell script uit uit om de deployment server te configureren.
 
 ```ps1
 PS C:\scripts> .\SQL.ps1
 ```
 
-Het script bevat 5 functies met elk een reeks aan powershell commando's, die achter elkaar worden uitgevoerd.
+Het script bevat 5 functies met elk een reeks aan Powershell commando's, die achter elkaar worden uitgevoerd.
 
 - changeHostname
   - Veranderd de hostname van de computer naar `EP3-SCCM`
@@ -368,13 +412,13 @@ We zien dat de "SQL Server (MSSQLSERVER)" service draait en met de juiste login 
 
 Nu dat de databank geïnstalleerd is kunnen we verder met de configuratie van de deployment server door SCCM (System Center Configuration Manager), nu MECM (Microsoft Endpoint Configuration Manager) genoemd, te installeren. Hiermee kunnen we een workstation deployen.
 
-Voer nu het [SCCM.ps1](#sccmps1) powershell script uit uit om **SCCM**/**MECM** te installeren.
+Voer nu het [SCCM.ps1](#sccmps1) Powershell script uit uit om **SCCM**/**MECM** te installeren.
 
 ```ps1
 PS C:\scripts> .\SCCM.ps1
 ```
 
-Het script bevat 5 functies met elk een reeks aan powershell commando's, die achter elkaar worden uitgevoerd.
+Het script bevat 5 functies met elk een reeks aan Powershell commando's, die achter elkaar worden uitgevoerd.
 
 - changePrerequisites
   - Installeert de vereiste features
@@ -448,11 +492,11 @@ We zien dat SCCM/MECM (Microsoft Endpoint Configuration Manager) is geïnstallee
 ---
 
 ## Scripts
-### Domeincontroller - EP3-DC-ALFA
+### Script Domeincontroller - EP3-DC-ALFA
 
 DC1.ps1
 
-```powershell
+```Powershell
 # -------------------------------------------------------------------------
 # Change hostname
 # -------------------------------------------------------------------------
@@ -476,7 +520,10 @@ function changeDomain {
     $netbios = "EP3-Maximiliaan"
     $password = "Administr@tor2022" | ConvertTo-SecureString -AsPlainText -Force
     Install-WindowsFeature AD-Domain-Services -IncludeManagementTools 
-    Install-ADDSForest -SkipPreChecks -DomainName $domainname -CreateDnsDelegation:$false -DatabasePath "C:\Windows\NTDS" -DomainMode "7" -DomainNetbiosName $netbios -ForestMode "7" -InstallDns:$true -LogPath "C:\Windows\NTDS" -NoRebootOnCompletion:$True -SysvolPath "C:\Windows\SYSVOL" -SafeModeAdministratorPassword:($password) -Force:$true 
+    Install-ADDSForest -SkipPreChecks -DomainName $domainname -CreateDnsDelegation:$false `
+    -DatabasePath "C:\Windows\NTDS" -DomainMode "7" -DomainNetbiosName $netbios -ForestMode "7" `
+    -InstallDns:$true -LogPath "C:\Windows\NTDS" -NoRebootOnCompletion:$True `
+    -SysvolPath "C:\Windows\SYSVOL" -SafeModeAdministratorPassword:($password) -Force:$true 
 }
 # -------------------------------------------------------------------------
 # Configure DNS
@@ -493,7 +540,8 @@ function changeDHCP {
     $startScope = "192.168.10.100"
     $endScope = "192.168.10.150"
     Install-WindowsFeature -Name 'DHCP' -IncludeManagementTools 
-    Add-DhcpServerV4Scope -Name "DHCP Scope" -StartRange $startScope -EndRange $endScope -SubnetMask 255.255.255.0 
+    Add-DhcpServerV4Scope -Name "DHCP Scope" -StartRange $startScope -EndRange $endScope `
+    -SubnetMask 255.255.255.0 
     Set-DhcpServerV4OptionValue -DnsServer $ip -Router $ip 
     Set-DhcpServerV4Scope -ScopeId $ip -LeaseDuration 1.00:00:00 
     Restart-Service DHCPServer -Force  
@@ -520,11 +568,11 @@ changeDHCP
 changeRRAS
 ```
 
-### Certificatie server - EP3-CA
+### Script Certificatie server - EP3-CA
 
 CA.ps1
 
-```powershell
+```Powershell
 # -------------------------------------------------------------------------
 # Change hostname
 # -------------------------------------------------------------------------
@@ -574,11 +622,11 @@ changePrerequisites
 installCA
 ```
 
-### WEB server - EP3-WEB
+### Script WEB server - EP3-WEB
 
 ISS.ps1
 
-```powershell
+```Powershell
 # -------------------------------------------------------------------------
 # Change hostname
 # -------------------------------------------------------------------------
@@ -676,10 +724,10 @@ joinDomain
 serverProvisioning
 ```
 
-### Deployment server - EP3-SCCM
+### Scripts Deployment server - EP3-SCCM
 #### SQL.ps1
 
-```powershell
+```Powershell
 # -------------------------------------------------------------------------
 # Change hostname
 # -------------------------------------------------------------------------
@@ -712,10 +760,15 @@ function joinDomain {
 Function changeSQL {
     $domainname = "EP3-Maximiliaan.hogent"
     Set-Location C:/packages
-    Start-Process -FilePath ./SQLServer.exe -ArgumentList "/action=download /quiet /enu /MediaPath=C:/" -wait
+    Start-Process -FilePath ./SQLServer.exe `
+    -ArgumentList "/action=download /quiet /enu /MediaPath=C:/" -wait
     Remove-Item ./SQLServer.exe
     Start-Process -FilePath C:/SQLServer2019-x64-ENU.exe -WorkingDirectory C:/ /qs -wait
-    C:/SQLServer2019-x64-ENU/SETUP.EXE /Q /ACTION="install" /IAcceptSQLServerLicenseTerms /FEATURES=SQL,RS,Tools /TCPENABLED=1 /SECURITYMODE=SQL /SQLSVCACCOUNT="$domainName\Administrator" /SQLSVCPASSWORD="Administr@tor2022" /SQLSYSADMINACCOUNTS="$domainName\Domain Admins" /INSTANCENAME=MSSQLSERVER /AGTSVCACCOUNT="$domainName\Administrator" /AGTSVCPASSWORD="Administr@tor2022" /SQLCOLLATION="SQL_Latin1_General_CP1_CI_AS" -wait
+    C:/SQLServer2019-x64-ENU/SETUP.EXE /Q /ACTION="install" /IAcceptSQLServerLicenseTerms `
+    /FEATURES=SQL,RS,Tools /TCPENABLED=1 /SECURITYMODE=SQL /SQLSVCACCOUNT="$domainName\Administrator" `
+    /SQLSVCPASSWORD="Administr@tor2022" /SQLSYSADMINACCOUNTS="$domainName\Domain Admins" `
+    /INSTANCENAME=MSSQLSERVER /AGTSVCACCOUNT="$domainName\Administrator" `
+    /AGTSVCPASSWORD="Administr@tor2022" /SQLCOLLATION="SQL_Latin1_General_CP1_CI_AS" -wait
 }
 # -------------------------------------------------------------------------
 #Change SSMS installation (Best performed on jumpserver)
@@ -734,7 +787,7 @@ changeSSMS
 
 #### SCCM.ps1
 
-```powershell
+```Powershell
 # -------------------------------------------------------------------------
 # Install the necessary prerequisites
 # -------------------------------------------------------------------------
@@ -761,7 +814,9 @@ function changePrerequisites {
 function installADK {
     Write-Host "Installing Windows 10 ADK....."
     Set-Location C:/packages
-    ADK.exe /installpath "C:\Program Files (x86)\Windows Kits\10" /features OptionId.DeploymentTools OptionId.UserStateMigrationTool OptionId.WindowsPreinstallationEnvironment /ceip off /norestart
+    ADK.exe /installpath "C:\Program Files (x86)\Windows Kits\10" `
+    /features OptionId.DeploymentTools OptionId.UserStateMigrationTool `
+    OptionId.WindowsPreinstallationEnvironment /ceip off /norestart
 }
 # -------------------------------------------------------------------------
 # Installing WSUS Features
